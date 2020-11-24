@@ -3,9 +3,8 @@ from math import log
 
 import numpy as np
 
-import CV
-import CV.BaseCurve as base
-import CV.Logistic as logistic
+import Curve
+import Curve.Logistic as logistic
 
 '''----------------------------------------------------------
  ABRK:
@@ -16,7 +15,7 @@ import CV.Logistic as logistic
 ----------------------------------------------------------'''
 
 
-class Logistic(CV.BaseCurve.BaseCurve):
+class Logistic(Curve.BaseCurve):
 
     def __init__(self, curveType, description):
         super().__init__(curveType, description)

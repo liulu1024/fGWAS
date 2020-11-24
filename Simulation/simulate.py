@@ -1,281 +1,258 @@
+import csv
+import math
+import random
+
+import numpy as np
+import pandas as pd
+
+import Simulation.FgObj as fgObj
+import Curve.CurveTool as tool
+import Covariance.CovarianceTool as covarTool
+import FgDmObject
+
+
 # '''---------------------
 #  fg_simulate
 #
-#    return fg.obj
+#    return fg_obj
 #
-# 	 str(fg.obj)
-# 	 $ obj.gen : 'fgwas.gen.obj':
-# 	 $ obj.phe : 'fgwas.phe.obj':
-# 	 $ error   : logi FALSE
+#       str(fg_obj)
+#       _ obj_gen : 'fgwas_gen_obj':
+#       _ obj_phe : 'fgwas_phe_obj':
+#       _ error   : logi FALSE
 # ---------------------'''
-#
-# def fg_simulate(curveType, covarianceType, n_obs, n_snp, time_points, par0=None, par1=None, par2=None, par_covar=None, par_X=None,
-# 		phe_missing=0.03, snp_missing=0.03, sig_pos=None, plink_format=FALSE, file_prefix=None):
-# 	## check 'curve.type'
-# 	if ( missing(curve.type) || is.null(curve.type) )
-# 		stop("No curve type is specified in the paramater 'curve.type'.")
-# 	else
-# 		if( is.character(curve.type) && length(curve.type) > 1 )
-# 			stop( paste( "'curve.type' should be a string indicating curve type." ) );
-#
-# 	## check 'covariance.type'
-# 	if ( missing(covariance.type) || is.null(covariance.type) )
-# 		stop("No covariance type is specified in the paramater 'covariance.type'.")
-# 	else
-# 		if( is.character(covariance.type) && length(covariance.type) > 1 )
-# 			stop( paste( "'covariance.type' should be a string indicating covariance type." ) );
-#
-# 	## check 'n.obs'
-# 	if ( missing(n.obs) || is.null(n.obs) )
-# 		stop("Individual count is not specified in the paramater 'n.obs'.")
-# 	else
-# 		if ( !(is.numeric( n.obs ) && length(n.obs)) )
-# 			stop("Not integer in parameter 'n.obs'.");
-#
-# 	## check 'n.snp'
-# 	if ( missing(n.snp) || is.null(n.snp) )
-# 		stop("SNP count is not specified in the paramater 'n.snp'.")
-# 	else
-# 		if ( !(is.numeric( n.snp ) && length(n.snp)) )
-# 			stop("Not integer in parameter 'n.snp'.");
-#
-# 	## check 'time.points'
-# 	if ( missing(time.points) || is.null(time.points) )
-# 		stop("Time points are not specified in the paramater 'time.points'.")
-# 	else
-# 	{
-# 		if ( !(is.numeric( time.points ) && length(time.points)) )
-# 			stop("Not integer in parameter 'time.points'.");
-# 	  # 划分timepoints or not
-# 		if(length(time.points)==1)
-# 			time.points <- 1:time.points
-# 	}
-#
-# 	## check 'par.X'
-# 	if( !missing(par.X)  && !is.null(par.X) )
-# 		if( !all(is.numeric(par.X)) )
-# 			stop( paste( "Covariate paramater should be numeric values." ) );
-#
-# 	## check 'file.prefix'
-# 	if ( !missing(file.prefix) && !is.null(file.prefix))
-# 		if( !is.character(file.prefix) || length(file.prefix)>1 )
-# 			stop( paste( "'file.prefix' should be a string." ) );
-#
-# 	if(plink.format && (missing(file.prefix) || is.null(file.prefix)))
-# 		stop("'file.prefix' is NULL")
-#
-# 	## check 'curve.type'
-# 	if( class(curve.type)=="fgwas.curve")
-# 		fg_curve <- curve.type
-# 	else
-# 		fg_curve <- fg.getCurve( curve.type );
-# # FG_CURVE GET_SIMU_PARAM
-# 	simu_parm <- get_simu_param( fg_curve, time.points );
-# 	simu_len <- NCOL(simu_parm);
-#
-# 	## check 'par0'
-# 	if( missing(par0) || is.null(par0))
-# 		par0 <- simu_parm[1,]
-# 	else
-# 	{
-# 		if( !( all(is.numeric(par0)) && length(par0)==simu_len) )
-# 			stop( paste( "Curve paramater should be", simu_len, "numeric values." ) );
-# 	}
-#
-# 	## check 'par1'
-# 	if( missing(par1) || is.null(par1))
-# 		par1 <- simu_parm[2,]
-# 	else
-# 	{
-# 		if( !( all(is.numeric(par1)) && length(par1)==simu_len) )
-# 			stop( paste( "Curve paramater should be", simu_len, "numeric values." ) );
-# 	}
-#
-# 	## check 'par2'
-# 	if( missing(par2) || is.null(par2))
-# 		par2 <- simu_parm[3,]
-# 	else
-# 	{
-# 		if( !( all(is.numeric(par2)) && length(par2)==simu_len) )
-# 			stop( paste( "Curve paramater should be", simu_len, "numeric values." ) );
-# 	}
-#
-# 	## check 'covariance.type'
-# 	if(class(covariance.type)=="fgwas.covar")
-# 		fg_covar <- covariance.type
-# 	else
-# 		fg_covar <- fg.getCovariance( covariance.type );
-#
-# 	simu_covar <- get_simu_param(fg_covar, time.points);
-# 	simu_len <- NROW(simu_covar);
-#
-# 	## check 'par.covar'
-# 	if(missing(par.covar) || is.null(par.covar) )
-# 		par.covar <- simu_covar
-# 	else
-# 	{
-# 		if( !( all(is.numeric(par.covar)) && length(par.covar)==simu_len) )
-# 			stop( paste( "Covariance paramater should be", simu_len, "numeric numbers." ) );
-# 	}
-#
-# 	## check 'sig.pos'
-# 	if ( missing(sig.pos) || is.null(sig.pos))
-# 	{
-# 		sig.pos <- round( runif(1, n.snp*0.25, n.snp*0.75) );
-# 		cat(" * A significant SNP is randomly specified to location(", sig.pos, ")\n" );
-# 	}
-# 	else
-# 	{
-# 		if ( !(is.numeric( sig.pos ) && length(sig.pos)) )
-# 			stop("Not integer in parameter 'n.snp'.");
-# 	}
-#
-# 	fg.obj <- proc_dat_simu( n.obs, n.snp, par.X, par0, par1, par2, par.covar, fg_curve, fg_covar, time.points, sig.pos, snp.missing, phe.missing );
-#
-# 	if(!is.null(file.prefix))
-# 	{
-# 		fg.obj$obj.phe$file.pheX <- paste( file.prefix, ".pheX.csv", sep="" );
-# 		fg.obj$obj.phe$file.pheY <- paste( file.prefix, ".pheY.csv", sep="" );
-# 		fg.obj$obj.phe$file.pheT <- paste( file.prefix, ".pheT.csv", sep="" );
-#
-# 		write.csv(data.frame(ID = fg.obj$obj.phe$ids, fg.obj$obj.phe$pheY), file = fg.obj$obj.phe$file.pheY, quote=F, row.names=F );
-# 		write.csv(data.frame(ID = fg.obj$obj.phe$ids, fg.obj$obj.phe$pheT), file = fg.obj$obj.phe$file.pheT, quote=F, row.names=F );
-# 		if(!is.null(fg.obj$obj.phe$pheX))
-# 			write.csv(data.frame(ID = fg.obj$obj.phe$ids, fg.obj$obj.phe$pheX), file = fg.obj$obj.phe$file.pheX, quote=F, row.names=F )
-# 		else
-# 			fg.obj$obj.phe$file.pheX=NULL;
-#
-# 		if ( !plink.format )
-# 		{
-# 			file.gen.dat  <- paste(file.prefix, ".geno.tab", sep="");
-# 			tb.gen <- data.frame(fg.obj$obj.gen$reader$get_snpinfo( NULL ),
-# 								 fg.obj$obj.gen$reader$get_snpmat( NULL, impute=F, allel=T )$snpmat );
-# 			colnames(tb.gen) <- c(colnames(tb.gen), rownames(fg.obj$obj.phe$file.pheX) );
-# 			write.table( tb.gen, file=file.gen.dat, quote=F, row.names=F, col.names=T, sep="\t" );
-#
-# 			fg.obj$obj.gen$files = list(file.gen.dat);
-# 		}
-# 		else
-# 		{
-# 			snp.mat <- fg.obj$obj.gen$reader$get_snpmat( NULL, impute=F, allel=F)$snpmat;
-# 			snp.info <- fg.obj$obj.gen$reader$get_snpinfo(NULL );
-#
-# 			r <- convert_simpe_to_plink( data.frame(snp.info[,c(2,1)], 0, snp.info[,c(3:5)]),  snp.mat, paste(file.prefix, ".geno", sep="") );
-#
-# 			fg.obj$obj.gen$files = list(
-# 				file.plink.bed = r$file.plink.bed,
-#    		    	file.plink.bim = r$file.plink.bim,
-#    		    	file.plink.fam = r$file.plink.fam);
-# 		}
-# 	}
-#
-# 	return(fg.obj);
-# }
-#
-# proc_dat_simu<-function( n.obs, n.snp, par.X, par0, par1, par2, par.covar, f.curve, f.covar, times, sig.idx, snp.missing, phe.missing )
-# {
-# 	obj.gen <- list();
-# 	obj.phe <- list(options=list(), params=list(), intercept=F);
-#
-# 	#generate SNPs
-# 	tmp.matrix <- proc_simu_geno( n.obs, n.snp, sig.idx, prob.miss = snp.missing )
-# 	tmp.snpinfo <- data.frame(SNPNAME=paste("SNP", 1:n.snp, sep="_"), CHR=1, POS=1:n.snp, RefBase="A", AltBase="B");
-# 	obj.gen$n.snp          = n.snp;
-# 	obj.gen$n.ind.total    = n.obs;
-#     obj.gen$n.ind.used     = n.obs;
-#
-# 	obj.gen$reader <- new("fg.dm.simple",
-# 			type           = "SIMPLE",
-# 			description    = "Simple geno table",
-# 			n.snp          = n.snp,
-# 			n.ind.total    = n.obs,
-# 			n.ind.used     = n.obs,
-# 			ids.used       = colnames(tmp.matrix),
-# 			file.simple.snp= "",
-# 			rawdata        = data.frame(tmp.snpinfo , tmp.matrix),
-# 			snpdata        = list(snp.info=tmp.snpinfo , snp.mat=tmp.matrix) );
-#
-# 	pheX <- NULL;
-# 	if(length(par.X)>0)
-# 	{
-# 		pheX <- matrix(0, nrow=n.obs, ncol=0 );
-# 		rownames(pheX) <- paste("N", 1:n.obs, sep="_");
-#
-# 		for(i in 1:length(par.X) )
-# 		{
-# 			if(i==1)
-# 				pheX <- cbind( pheX,round( runif(n.obs, 1, 2) ) )
-# 			else
-# 				pheX <- cbind( pheX, runif(n.obs, -1, 1) );
-# 		}
-# 		colnames(pheX) <- paste("X", 1:length(par.X), sep="_");
-# 	}
-#
-#
-# 	pheY <- array( 0, dim=c(n.obs, length(times)));
-#
-# 	colnames( pheY ) <- paste("Y", times, sep="_");
-# 	rownames( pheY ) <- paste("N", 1:n.obs, sep="_");
-#
-# 	#generate traits
-# 	options <- list( max.time=max(times, na.rm=T), min.time=min(times, na.rm=T) );
-# 	sim.mu   <-  get_curve( f.curve, par0, times, options=options );
-# 	sim.mu   <-  rbind(sim.mu, get_curve( f.curve, par1, times, options=options ) );
-# 	sim.mu   <-  rbind(sim.mu, get_curve( f.curve, par2, times, options=options ) );
-#
-# 	get_gencode <- function(d.gen, d.snpinfo)
-# 	{
-# 		d.g <- array( 9, n.obs );
-# 		d.gen2 <- as.character(unlist(d.gen));
-# 		snpB <- as.character(unlist(d.snpinfo[5]));
-# 		snpA <- as.character(unlist(d.snpinfo[4]));
-#
-# 		QQ2<- paste(snpB, snpB, sep="");
-# 		qq0<- paste(snpA, snpA, sep="");
-# 		Qq1<- c(paste(snpA, snpB, sep=""), paste( snpB, snpA, sep="") ) ;
-#
-# 		d.g[which(d.gen2==QQ2)]<-2;
-# 		d.g[which(d.gen2==qq0)]<-0;
-# 		d.g[which(d.gen2==Qq1[1])]<-1;
-# 		d.g[which(d.gen2==Qq1[2])]<-1;
-#
-# 		return(d.g);
-# 	}
-#
-# 	d.g <- get_gencode(tmp.matrix[sig.idx,],  tmp.snpinfo[sig.idx,])
-# 	d.g1 <- get_gencode(tmp.matrix[1,],  tmp.snpinfo[1,])
-# 	d.g2 <- get_gencode(tmp.matrix[2,],  tmp.snpinfo[2,])
-#
-# #if(.RR("debug")) cat("COR(g, g1)=", cor(d.g, d.g1), "\n");
-# #if(.RR("debug")) cat("COR(g, g2)=", cor(d.g, d.g2), "\n");
-#
-# 	sim.covar <- get_matrix( f.covar, par.covar,times );
-# 	for (i in 1:n.obs)
-# 	{
-# 		 if (d.g[i]==9) d.g[i] <- round(runif(1, 0, 2));
-#
-# 		 pheY[i, ] <- rmvnorm(1, sim.mu[ d.g[i] + 1, ], sim.covar );
-# 		 if( !is.null(pheX) )
-# 		 	pheY[i, ]  <- pheY[i, ] + sum( pheX[i,] * par.X );
-# 	}
-#
-# 	obj.phe$obj.curve <- f.curve;
-# 	obj.phe$obj.covar <- f.covar;
-# 	obj.phe$ids       <- rownames( pheY );
-# 	obj.phe$pheY      <- pheY;
-# 	obj.phe$pheX      <- pheX;
-# 	# 循环 rep(a,b) a循环b次
-# 	obj.phe$pheT      <- matrix( rep(times, n.obs), nrow=n.obs, byrow=T)
-#
-# 	colnames(obj.phe$pheT) <- paste("T", times, sep="_");
-# 	rownames(obj.phe$pheT) <- rownames( pheY );
-#
-# 	class(obj.gen) <- "fgwas.gen.obj"
-# 	class(obj.phe) <- "fgwas.phe.obj"
-#
-# 	fg.obj <- list(obj.gen=obj.gen, obj.phe=obj.phe, error=F);
-#
-# 	cat(" Data simulation is done![Sig=", sig.idx, "]\n");
-#
-# 	return(fg.obj);
-# }
+def proc_dat_simu(n_obs, n_snp, par_X, par0, par1, par2, par_covar, curve, covar, times, sig_idx, snp_missing,
+                  phe_missing):
+    obj_gen = fgObj.FgGenObj()
+    obj_phe = fgObj.FgPheObj()
+
+    # generate SNPs
+    tmp_matrix = proc_simu_geno(n_obs, n_snp, sig_idx, prob_miss=snp_missing)
+    tmp_snpinfo = pd.DataFrame(
+        {'SNPNAME': np.array(['SNP_' + str(i) for i in range(0, n_snp)]), 'CHR': np.ones(n_snp),
+         'POS': np.arange(0, n_snp, 1), 'RefBase': 'A', 'AltBase': 'T'})
+    # to do change to get set method
+    obj_gen.n_snp = n_snp
+    obj_gen.n_ind_total = n_obs
+
+    obj_gen.n_ind_used = n_obs
+    obj_gen.reader = FgDmObject.FgDmSimple(file_simple_snp="",
+                                           rawData=pd.concat([tmp_snpinfo, tmp_matrix],axis=1),
+                                           snpData=fgObj.SnpData(snp_info=tmp_snpinfo, snp_mat=tmp_matrix),
+                                           type="SIMPLE", description="Simple geno table", snp_num=n_snp,
+                                           ind_total_num=n_obs, ind_used_num=n_obs, ids_used=tmp_matrix.columns
+                                           )
+
+    pheX = None
+
+    if len(par_X) > 0:
+        data = np.zeros((len(par_X), n_obs))
+        for i in range(0, len(par_X)):
+            if i == 0:
+                data[i] = np.round(np.random.normal(1, 2, n_obs))
+            else:
+                data[i] = np.random.normal(-1, 1, n_obs)
+        pheX = pd.DataFrame(data.T, columns=['X_{0}'.format(i) for i in range(0, len(par_X))],
+                            index=['N_{0}'.format(i) for i in range(0, n_obs)])
+
+    # generate traits
+    # max_time,min_time
+    options = (np.nanmax(times), np.nanmin(times))
+    sim_mu = np.zeros((3, len(times)))
+    sim_mu[0:] = curve.get_curve_formula(par0, times, *options)
+    sim_mu[1:] = curve.get_curve_formula(par1, times, *options)
+    sim_mu[2:] = curve.get_curve_formula(par2, times, *options)
+
+    d_g = get_gencode(tmp_matrix.iloc[[sig_idx]], tmp_snpinfo.iloc[[sig_idx]], n_obs)
+    # d_g1 = get_gencode(tmp_matrix.iloc[[0]], tmp_snpinfo.iloc[[0]], n_obs)
+    # d_g2 = get_gencode(tmp_matrix.iloc[[1]], tmp_snpinfo.iloc[[1]], n_obs)
+    sim_covar = covar.get_matrix(par_covar, times)
+    pheY_data = np.zeros((n_obs, len(times)))
+    for i in range(0, n_obs):
+        if d_g[:, i] == 9:
+            d_g[:, i] = np.round(np.random.uniform(0, 2, 1))
+            pheY_data[i] = np.random.multivariate_normal(sim_mu[(d_g[:, i])][0], sim_covar, 1)
+            if pheX is not None:
+                pheY_data[i] = pheY_data[i] + (pheX.iloc[[i]] * par_X).sum(axis=1).values
+    pheY = pd.DataFrame(pheY_data, columns=['Y_{0}'.format(i) for i in times],
+                        index=['N_{0}'.format(i) for i in range(0, n_obs)])
+    obj_phe.obj_curve = curve
+    obj_phe.obj_covar = covar
+    obj_phe.ids = pheY._stat_axis.values.tolist()
+    obj_phe.pheY = pheY
+    obj_phe.pheX = pheX
+
+    obj_phe.pheT = pd.DataFrame(np.repeat(times, n_obs).reshape(len(times), n_obs).T,
+                                columns=['T_{0}'.format(i) for i in range(0, len(times))],
+                                index=pheY._stat_axis.values.tolist())
+
+    obj = fgObj.SimuObj(obj_gen, obj_phe, False)
+
+    print(" Data simulation is done![Sig={0}]\n".format(sig_idx))
+
+    return obj
+
+
+def write_csv(fg_obj):
+    fg_obj.obj_phe.pheY.to_csv(fg_obj.obj_phe.file_pheY, sep=' ', header=True, index=True)
+    fg_obj.obj_phe.pheT.to_csv(fg_obj.obj_phe.file_pheT, sep=' ', header=True, index=True)
+    if fg_obj.obj_phe.file_pheX is not None:
+        fg_obj.obj_phe.pheX.to_csv(fg_obj.obj_phe.file_pheX, sep=' ', header=True, index=True)
+    else:
+        fg_obj.obj_phe.file_pheX = None
+
+
+# time_points type np.ndarray
+def fg_simulate(curveType, covarianceType, n_obs, n_snp, time_points, par0=None, par1=None, par2=None, par_covar=None,
+                par_X=None, phe_missing=0.03, snp_missing=0.03, sig_pos=None, plink_format=False, file_prefix=None):
+    # TODO the following two will remove to intrface and check if time_points is a list
+    if not isinstance(time_points, np.ndarray):
+        time_points = np.array(time_points)
+    curve = tool.get_curve(curveType)
+    covar = covarTool.getCovariance(covarianceType)
+
+    curve_simu_param = curve.get_simu_param(time_points)
+    covar_simu_param = covar.get_simu_param(time_points)
+
+    par0 = curve_simu_param[0]
+    par1 = curve_simu_param[1]
+    par2 = curve_simu_param[2]
+
+    par_covar = covar_simu_param
+
+    fg_obj = proc_dat_simu(n_obs, n_snp, par_X, par0, par1, par2, par_covar, curve, covar, time_points,
+                           sig_pos,
+                           snp_missing, phe_missing)
+
+    if file_prefix is not None:
+        fg_obj.obj_phe.file_pheX = file_prefix + "_pheX.csv"
+        fg_obj.obj_phe.file_pheY = file_prefix + "_pheY.csv"
+        fg_obj.obj_phe.file_pheT = file_prefix + "_pheT.csv"
+
+    write_csv(fg_obj)
+
+    if not plink_format:
+          file_gen_dat = file_prefix+".geno.tab"
+          tb_gen =pd.concat([fg_obj.obj.gen.reader.get_snpinfo(None),
+                           fg_obj.obj.gen.reader.get_snpmat(None, impute=False, allel=True).snpmat],axis=1 )
+          tb_gen.columns = tb_gen.columns.values.append(fg_obj.obj_phe.file_pheX.index.values)
+         # write.table(tb.gen, file=file.gen.dat, quote=F, row.names = F, col.names = T, sep = "\t" );
+
+          fg_obj.obj_gen.files = file_gen_dat
+    else:
+         snp_mat =fg_obj.obj_gen.reader.get_snpmat(None, impute=False, allel=False).snpmat
+         snp_info =fg_obj.obj_gen.reader.get_snpinfo(None)
+
+         # r =convert_simpe_to_plink(data_frame(snp_info[, c(2, 1)], 0, snp_info[, c(3:5)]), snp_mat, paste(file_prefix,
+         #                                                                                                     "_geno",
+         #                                                                                                     sep="") );
+
+         # fg_obj_obj_gen_files =(file_plink_bed = r_file_plink_bed,
+         #                        file_plink_bim = r_file_plink_bim,
+         #                                           file_plink_fam = r_file_plink_fam);
+    return fg_obj
+
+
+class FgDmSimple(object):
+    def __init__(self, type, description, n_snp, n_ind_total, n_ind_used, ids_used, file_simple_snp, rawdata,
+                 snpdata):
+        self.type = type
+        self.description = description
+        self.n_snp = n_snp
+        self.n_ind_total = n_ind_total
+        self.n_ind_used = n_ind_used
+        self.ids_used = ids_used
+        self.file_simple_snp = file_simple_snp
+        self.rawdata = rawdata
+        self.snpdata = snpdata
+
+
+def get_gencode(gen, snp_info, n_obs):
+    d_g = np.full((1, n_obs), 9)
+    gen2 = gen.values.astype(str)
+    tmp = snp_info.values
+    snpB = tmp[0, 4]
+    snpA = tmp[0, 3]
+
+    QQ2 = snpB + snpB
+    qq0 = snpA + snpA
+    Qq1 = (snpA + snpB, snpB + snpA)
+
+    d_g[gen2 == QQ2] = 2
+    d_g[gen2 == qq0] = 0
+    d_g[gen2 == Qq1[0]] = 1
+    d_g[gen2 == Qq1[1]] = 1
+
+    return d_g
+
+
+def generate_bc_marker(n_obs, dist):
+    if dist[1] != 0:
+        cm = np.hstack((0, dist)) / 100
+    else:
+        cm = dist / 100
+
+    n = len(cm)
+    rs = 1 / 2 * (np.exp(2 * cm) - np.exp(-2 * cm)) / (np.exp(2 * cm) + np.exp(-2 * cm))
+
+    mk = np.zeros((n_obs, n))
+
+    for j in range(0, n_obs):
+        mk[j, 0] = np.random.uniform(0, 1, 1) > 0.5
+
+    for i in range(1, n):
+        for j in range(1, n_obs):
+            if mk[j, i - 1] == 1:
+                mk[j, i] = np.random.uniform(0, 1, 1) > rs[i]
+            else:
+                mk[j, i] = np.random.uniform(0, 1, 1) < rs[i]
+
+    return mk
+
+
+def proc_simu_geno(n_obs, n_snp, sig_idx, prob_miss=0.03):
+    # runif取500个值， cumsum 累加
+    dist = np.random.uniform(0.05, 0.12, n_snp).cumsum()
+    snp1 = generate_bc_marker(n_obs, dist).T
+    snp2 = generate_bc_marker(n_obs, dist).T
+    for i in range(0, n_snp):
+        n_miss = random.uniform(0, n_obs * prob_miss)
+        if n_miss >= 1:
+            snp1[i, random.sample(range(0, n_obs), n_obs)[0:round(n_miss)]] = 9
+
+    for i in range(0, n_snp):
+        n_miss = random.uniform(0, n_obs * prob_miss)
+        if n_miss >= 1:
+            snp2[i, random.sample(range(0, n_obs), n_obs)[0:round(n_miss)]] = 9
+
+    cors = np.zeros(n_snp)
+    snpx = snp1 + snp2
+    for i in range(0, n_snp):
+        cors[i] = np.corrcoef(snpx[i].tolist(), snpx[sig_idx].tolist())[0, 1]
+    cor_high = np.where(abs(cors) > 0.75)
+    if len(cor_high) >= 2:
+        for i in range(0, len(cor_high)):
+            if cor_high[i] != sig_idx:
+                snp1[cor_high[i]] = snp1[cor_high[i] - 1]
+                snp2[cor_high[i]] = snp2[cor_high[i] - 1]
+    snp1_s = snp1.astype(str).flatten()
+    snp2_s = snp2.astype(str).flatten()
+
+    if len(np.where(snp1_s == "0.0")) > 0:
+        snp1_s[np.where(snp1_s == "0.0")] = 'A'
+    if len(np.where(snp1_s == "1.0")) > 0:
+        snp1_s[np.where(snp1_s == "1.0")] = "T"
+    if len(np.where(snp1_s == "9.0")) > 0:
+        snp1_s[np.where(snp1_s == "9.0")] = "."
+
+    if len(np.where(snp2_s == "0.0")) > 0:
+        snp2_s[np.where(snp2_s == "0.0")] = "A"
+    if len(np.where(snp2_s == "1.0")) > 0:
+        snp2_s[np.where(snp2_s == "1.0")] = "T"
+    if len(np.where(snp2_s == "9.0")) > 0:
+        snp2_s[np.where(snp2_s == "9.0")] = "."
+    #
+    snp_s = np.char.add(snp1_s, snp2_s)
+    gen = pd.DataFrame(snp_s.reshape(snp1.shape[0], n_obs), columns=['N_{0}'.format(i) for i in range(0, n_obs)],
+                       index=['SNP_{0}'.format(i) for i in range(0, snp1.shape[0])])
+    return gen

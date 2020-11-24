@@ -1,20 +1,21 @@
-import Covariance.BaseCovariance
+import Covariance.CovarianceTool
 import numpy as np
+import Covariance
 
 
-class ARMA1(Covariance.BaseCovariance.BaseCovariance):
-    def __init__(self, type, description):
-        super.__init__(self, type, description)
+class ARMA1(Covariance.BaseCovariance):
+    def __init__(self, covarType, description):
+        super().__init__(covarType, description)
 
-    def get_matrix(self, par, times, options=list()):
+    def get_matrix(self, par, times, *options):
         # rho,sigma2,phi
-        rho = par[1]
-        phi = abs(par[2])
-        s2 = abs(par[3])
-        n = len(times) if isinstance(times, list) else np.size(times, 1)
+        rho = par[0]
+        phi = abs(par[1])
+        s2 = abs(par[2])
+        n = len(times) if isinstance(times, np.ndarray) else np.size(times, 0)
 
-        sigma = abs(s2) * ((np.ones(n, n) - np.eye(n)) * phi + np.eye(n)) * rho ^ abs(
-            np.arrange(1, (n + 1)).reshape(n, n) - np.arrange(1, (n + 1)).reshae(n, n).T)
+        sigma = abs(s2) * ((np.ones((n, n)) - np.eye(n)) * phi + np.eye(n)) * np.power(rho,abs(
+            np.full((n, n), range(0, n)) - np.full((n, n), range(0, n)).T))
         return sigma
 
     def get_gradient(self, par, times, options=list()):
@@ -32,7 +33,7 @@ class ARMA1(Covariance.BaseCovariance.BaseCovariance):
 
         return list(drho, dphi, ds2)
 
-    def get_param_info(self, par, times, options=list()):
+    def get_param_info(self, par, times, *options):
         return {'count': 3, 'names': ["rho", "phi", "sigma2"]}
 
     def check_param(self, par, times, options=list()):
@@ -41,10 +42,10 @@ class ARMA1(Covariance.BaseCovariance.BaseCovariance):
         else:
             return True
 
-    def get_simu_param(self, par, times, options=list()):
-        return list(0.75, 0.9, 1.2)
+    def get_simu_param(self, times, *options):
+        return [0.75, 0.9, 1.2]
 
-    def est_init_param(self, pheY, pheX, pheT, options=list()):
+    def est_init_param(self, pheY, pheX, pheT, *options):
         # TODO nan 值处理
         s2 = np.var(pheY[:, 1])
         # ! & !  and !(&)
@@ -53,4 +54,4 @@ class ARMA1(Covariance.BaseCovariance.BaseCovariance):
         phi = np.corrcoef(pheY[not (np.isnan(pheY[:, 2]) & np.isnan(pheY[:, 1])), 2],
                           pheY[not (np.isnan(pheY[:, 2]) & np.isnan(pheY[:, 1])), 1]) / rho
 
-        return list(rho, phi, s2 * np.random.normal(0.9, 1.1, 1))
+        return [rho, phi, s2 * np.random.normal(0.9, 1.1, 1)]

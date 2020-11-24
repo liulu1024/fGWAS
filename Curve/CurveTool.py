@@ -1,26 +1,6 @@
-import numpy as np
+import Curve.Logistic
+import  numpy as np
 import torch
-
-import CV.Logistic
-
-
-class BaseCurve(object):
-    curveType = 'Base'
-    description = 'BaseCurve'
-
-    def __init__(self, curveType, description):
-        self.curveType = curveType
-        self.description = description
-
-    def show(obj):
-        print("     Class :", obj.__class__, "\n")
-        print("Curve Type :", obj.curveType, "\n")
-
-        info = obj.get_param_info()
-        print("Parameters :", info['names'], "\n")
-        print("   Formula :", info['formula'], "\n")
-
-
 curves = []
 
 
@@ -41,7 +21,7 @@ def check_param(obj, *args):
 
 
 def get_simu_param(obj, *args):
-    return obj.get_simu_param(*args)
+    return obj.get_simu_param(times=args)
 
 
 def est_init_param(obj, *args):
@@ -79,7 +59,7 @@ def get_curve(type):
     if isinstance(type, int):
         curve = get_all_curve()[type]
 
-    curve.show(curve)
+    curve.show()
     return curve
 
 
@@ -90,7 +70,7 @@ all curve
 
 def get_all_curve():
     if len(curves) == 0:
-        curves.append(CV.Logistic.Logistic(curveType="Logistic", description="logistic curve"))
+        curves.append(Curve.Logistic.Logistic(curveType="Logistic", description="logistic curve"))
         # self.curves.append(BaseCurve(curveType="Bi-Logistic", description="Double logistic curve"))
         # self.curves.append(BaseCurve(curveType="ABRK", description="ABRK model"))
         #

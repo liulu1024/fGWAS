@@ -2,9 +2,8 @@ from math import exp
 
 import numpy as np
 
-import CV
-import CV.BaseCurve as base
-import CV.Logistic as logistic
+import Curve
+import Curve.Logistic as logistic
 
 '''-----------------------------------------------------------
   curveType Double Logistic
@@ -51,7 +50,7 @@ def get_param_info():
                                                                                   "a2/(1+b2*exp(-r2*t))"}
 
 
-class DoubleLogistic(CV.BaseCurve.BaseCurve):
+class DoubleLogistic(Curve.BaseCurve):
 
     def __init__(self, curveType, description):
         super().__init__(curveType, description)
