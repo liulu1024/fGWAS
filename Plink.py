@@ -2,6 +2,8 @@
 # import  Simulation.FgObj as FgObj
 # from pandas_plink  import  read_plink
 # import  FgDmObject as FgDmObj
+# from pyplink import  PyPlink
+# import  numpy as np
 # ## PLINK format
 # #
 # ## BIM file:
@@ -168,7 +170,7 @@
 #      return objref
 #
 #
-# def plink_checkFiles( refobj, verbose=False):
+# def plink_checkFiles(refobj, verbose=False):
 #
 #      if verbose:
 #
@@ -179,302 +181,118 @@
 #        print("* PLINK Command = "+refobj.plink.command)
 #
 #
-#      # if( all( file.exists( refobj.file_plink_bed,  refobj.file_plink_bim, refobj.file_plink_fam ) ) )
-#      #
-#      #      refobj.snpdata.plink.fam =read.table(refobj.file_plink_fam, header=F, stringsAsFactors=F)
-#      #  colnames(refobj.snpdata.plink.fam) =c("FID", "IID", "PID", "MID", "SEX", "PHE")
-#      #
-#      #  refobj.snpdata.plink.bim =read.table(refobj.file_plink_bim, header=F, stringsAsFactors=F)
-#      #  colnames(refobj.snpdata.plink.bim) =c("CHR", "SNP", "CM", "POS", "A1", "A2")
-#      #
-#      #  if(refobj.chromosome != -1)
-#      #
-#      #   snp.idx =which(refobj.snpdata.plink.bim[,1] %in% refobj.chromosome)
-#      #   refobj.snpdata.plink.bim =refobj.snpdata.plink.bim[snp.idx, ]
-#      #
-#      #
-#      #  refobj.n.snp        =NROW(refobj.snpdata.plink.bim)
-#      #  refobj.n_ind_total  =NROW(refobj.snpdata.plink.fam)
-#      #  refobj.n.ind.used   =refobj.n_ind_total
-#      #  refobj.ids.used     =as.character(refobj.snpdata.plink.fam[,2])
+#      if os.path.isfile(refobj.file_plink_bed) and os.path.isfile(refobj.file_plink_bim) and os.path.isfile(refobj.file_plink_fam)
 #
-#       #return refobj
-#      #
-#      # else:
-#      #  # stop("PLInK files can not be found!")
-#      #  pass
+#          with PyPlink("plink_file_prefix") as bed:
+#              # Getting the BIM and FAM
+#              bim = bed.get_bim()
+#              fam = bed.get_fam()
 #
 #
-#      (objref, snp_idx=None, impute=False, allel=False )
+#          refobj.snp_data.plink_fam =fam
+#          fam.columns=["FID", "IID", "PID", "MID", "SEX", "PHE"]
 #
-#      if snp
-#          snp.idx =1:objref.n.snp
+#          refobj.snp_data.plink_bim =bim
+#          refobj.snpdata.plink_bim=["CHR", "SNP", "CM", "POS", "A1", "A2"]
 #
-#      snp.idx.ord =order( snp.idx, decreasing=F)
-#      snp.idx.new =snp.idx[ snp.idx.ord ]
+#          if not refobj.chromosome == -1:
 #
-#      check_local_snpmat(snp.k)
+#            snp_idx =np.isin(refobj.snp_data.plink_bim.loc[:,0], refobj.chromosome)
+#            refobj.snp_data.plink_bim =refobj.snp_data.plink_bim.loc[snp_idx,:]
 #
-#       if(is.None(objref.snpdata.local.idx))
-#        return(False)
 #
-#       return(snp.k %in% objref.snpdata.local.idx)
+#          refobj.n.snp = refobj.snp_data.plink_bim.shape[0]
+#          refobj.n_ind_total  = refobj.snp_data.plink_fam.shape[0]
+#          refobj.n_ind.used   =refobj.n_ind_total
+#          refobj.ids.used     = (refobj.snp_data.plink_fam.loc[:,1]).values.astype(str)
 #
+#          return refobj
 #
-#      load_local_snpmat(snp.k)
+#      else:
+#       os.exit("PLInK files can not be found!")
 #
-#       select.subjects =objref.snpdata.plink.fam[ match( objref.ids.used, objref.snpdata.plink.fam[,2] ), c(1,2)]
-#       loading.idx =seq( snp.k, ifelse(snp.k + objref.snp.blocksize > objref.n.snp, objref.n.snp, snp.k + objref.snp.blocksize), 1)
-#       plink.obj =plink.cmd.select( objref.plink.command, objref.file_plink_bed, objref.file_plink_bim, objref.file_plink_fam,
-#           select.snps = objref.snpdata.plink.bim[loading.idx, 2],
-#           select.subjects = select.subjects )
 #
-#       if(class(plink.obj)=="try-error")
-#        stop("Error in PLINK data extraction.")
 #
-#       objref.snpdata.local.idx   =loading.idx
-#       objref.snpdata.local.fam   =plink.obj.fam
-#       objref.snpdata.local.map   =plink.obj.map
-#       objref.snpdata.local.snpmat=plink.obj.genotypes
 #
 #
-#      get_local_snpmat(snp.k)
 #
-#       k.idx =which(snp.k==objref.snpdata.local.idx)
-#       return(as.numeric(objref.snpdata.local.snpmat[,k.idx]) -1 )
 #
 #
-#      snpmat =matrix(NA, nrow = objref.n.ind.used, ncol=NROW(snp.idx.new))
+# def plink_getSnpMat(objref, snp_idx=None, impute=False, allel=False ):
+#        if  snp_idx is None:
+#             snp_idx = np.arange(0,objref.n_snp)
 #
-#      for(i in 1:NROW(snp.idx.new))
+#         # in decreasing order
+#        snp_idx.new =snp_idx.sort()
 #
-#       if ( !check_local_snpmat( snp.idx.new[i] ) )
-#        load_local_snpmat( snp.idx.new[i] )
+#        def check_local_snpmat(snp_k):
+#           if objref.snp_data.local_idx is None:
+#              return False
 #
-#       snpmat[,i] =get_local_snpmat( snp.idx.new[i] )
-#       snpmat[ snpmat[,i]==-1 , i ]  =NA
-#       if (mean(snpmat[,i], na.rm=T)/2>0.5 )
-#        snpmat[,i] =2 - snpmat[,i]
+#           return np.isin(snp_k,objref.snp_data.local_idx)
 #
 #
-#      snpmat =snpmat[, order(snp.idx.ord), drop=F]
+#        def load_local_snpmat(snp_k):
 #
-#      colnames(snpmat) = objref.snpdata.plink.bim[snp.idx,2]
-#      rownames(snpmat) = objref.ids.used
+#         select_subjects =objref.snpdata.plink.fam[match(objref.ids.used, objref.snpdata.plink.fam[, 2] ), c(1, 2)]
+#         loading.idx =seq(snp.k,
+#                             ifelse(snp.k + objref.snp.blocksize > objref.n.snp, objref.n.snp, snp.k + objref.snp.blocksize), 1);
+#         plink.obj =plink.cmd.select(
+#             objref.plink.command, objref.file.plink.bed, objref.file.plink.bim, objref.file.plink.fam,
+#                                                                                        select.snps = objref.snpdata.plink.bim[
+#                                                                                                                         loading.idx, 2],
+#                                                                                                                     select.subjects = select.subjects )
 #
-#      if( impute )
+#         if (
 #
-#       snpmat.imp =impute_simple_snp(snpmat)
-#       return(list(snpmat = snpmat.imp.snpmat, NMISS=snpmat.imp.NMISS, MAF=snpmat.imp.MAF))
 #
+#             class(plink.obj)== "try-error")
+#             stop("Error in PLINK data extraction.");
 #
-#      else
+#             objref.snpdata.local.idx =loading.idx;
+#             objref.snpdata.local.fam =plink.obj.fam;
+#             objref.snpdata.local.map =plink.obj.map;
+#             objref.snpdata.local.snpmat =plink.obj.genotypes;
 #
-#       NMISS =unlist(apply(snpmat, 2, function(snp.k) length(which(is.na(snp.k)))))
-#       return(list(snpmat = snpmat, NMISS=NMISS, MAF=colMeans(snpmat, na.rm=T)/2))
 #
+#             get_local_snpmat < -function(snp.k)
 #
+#             k.idx =which(snp.k == objref.snpdata.local.idx);
 #
-#     plink.get.snpinfo(objref, snp.idx)
 #
-#      # remove genetic distance at 3rd postion
+#         return (as.numeric(objref.snpdata.local.snpmat[, k.idx]) - 1 );
 #
-#      if(is.None(snp.idx))
-#       snp.idx =1:objref.n.snp
 #
-#      return( objref.snpdata.plink.bim[snp.idx,c(2,1,4,5,6), drop=F])
+#         snpmat =matrix(NA, nrow=objref.n.ind.used, ncol = NROW(snp.idx.new));
 #
+#         for (i in 1:NROW(snp.idx.new))
 #
-#     plink.get.individuals(objref)
+#         if (!check_local_snpmat(snp_idx.new[i]) )
+#         load_local_snpmat(snp.idx.new[i])
 #
-#      return( objref.snpdata.plink.fam[,2])
+#         snpmat[, i] =get_local_snpmat(snp.idx.new[i])
+#         snpmat[snpmat[, i] == -1, i] =NA;
+#         if (mean(snpmat[, i], na.rm=T) / 2 > 0.5 )
+#         snpmat[, i] =2 - snpmat[, i];
 #
 #
-#     plink.select.individuals(objref, ids.used)
+#         snpmat =snpmat[, order(snp.idx.ord), drop = F];
 #
-#      objref.ids.used =as.character(ids.used)
+#         colnames(snpmat) = objref.snpdata.plink.bim[snp.idx, 2];
+#         rownames(snpmat) = objref.ids.used;
 #
+#         if (impute)
 #
-#     plink.get.used.individuals(objref)
+#         snpmat.imp =impute_simple_snp(snpmat);
+#         return (list(snpmat=snpmat.imp.snpmat, NMISS=snpmat.imp.NMISS, MAF=snpmat.imp.MAF))
 #
-#      return(objref.ids.used)
 #
+#         else
 #
-#     plink.get.snpindex =function( objref, snp.names )
+#         NMISS =unlist(apply(snpmat, 2, function(snp.k)
+#       length(which( is.na(snp.k)));}));
+#         return (list(snpmat=snpmat, NMISS=NMISS, MAF=colMeans(snpmat, na.rm=T) / 2));
 #
-#      return( match(snp.names, objref.snpdata.plink.bim[,2]) )
-#
-#
-#     plink.shrink (objref)
-#
-#      objref.snpdata.plink.snpmat =None
-#      objref.snpdata.plink.fam =None
-#      objref.snpdata.plink.map =None
-#
-#
-#     test_plink_func(plink)
-#
-#      n.snp =NCOL( plink.genotypes )
-#
-#       print("...Get 100 SNPs")
-#      r.snp =get_plink_subsnp(plink, 1:100)
-#
-#       print("...Get 1000 SNPs")
-#      r.snp =get_plink_subsnp(plink, 1:1000)
-#
-#       print("...Get 10000 SNPs")
-#      r.snp =get_plink_subsnp(plink, 1:10000)
-#
-#       print("...Get 50000 SNPs")
-#      r.snp =get_plink_subsnp(plink, 1:50000)
-#
-#       print("...Get 100000 SNPs")
-#      r.snp =get_plink_subsnp( plink, sample(n.snp)[1:100000] )
-#
-#
-#     get_plink_subsnp(snp.mat, snp.set.idx)
-#
-#      s.mat =as( snp.mat.genotypes[, snp.set.idx, drop=F ], "numeric")
-#      snp.imp <-c()
-#      snp.maf =c()
-#      snp.names =c()
-#
-#      f.impute(s.mat.i )
-#
-#       s.miss =which( is.na(s.mat.i) )
-#
-#       if (length(s.miss)>0)
-#
-#        n.AA =length( which( s.mat.i == 0 ) )
-#        n.Aa =length( which( s.mat.i == 1 ) )
-#        n.aa =length( which( s.mat.i == 2 ) )
-#        n.s  =n.AA + n.Aa + n.aa
-#
-#        r.miss =runif( length(s.miss) )
-#        r.snp  =rep(2, length(s.miss))
-#        r.snp [ r.miss <= n.AA/n.s ]<-0
-#        r.snp [ r.miss <= (n.AA + n.Aa)/n.s ]<-1
-#        s.mat.i[s.miss] =r.snp
-#
-#
-#       if (mean(s.mat.i)/2>0.5) s.mat.i =2 - s.mat.i
-#
-#       return( s.mat.i )
-#
-#
-#
-#      snp.imp =t( apply(s.mat, 2, f.impute) )
-#      snp.maf =rowMeans(snp.imp) /2
-#
-#      map =snp.mat.map[snp.set.idx, ,drop=F]
-#      rownames(snp.imp) <-rownames( map )
-#
-#      return(list(maf=snp.maf, snp=snp.imp, info=map[,c(2,1,4)]) )
-#
-#
-#     impute_simple_snp =function( snpmat )
-#
-#      f_imputed =function( snp )
-#
-#       s.miss =which( is.na( snp ) )
-#       if ( length(s.miss)>0 )
-#
-#        n.AA =length(which( snp == 0 ) )
-#        n.Aa =length(which( snp == 1 ) )
-#        n.aa =length(which( snp == 2 ) )
-#        n.s  =n.AA + n.Aa + n.aa
-#
-#        r.miss =runif( length(s.miss) )
-#        r.snp  =rep(2, length( s.miss ))
-#        r.snp [ r.miss <= n.AA/n.s ] =0
-#        r.snp [ r.miss <= (n.AA + n.Aa)/n.s ] <-1
-#        snp [ s.miss ] =r.snp
-#
-#
-#       if (mean(  snp )/2>0.5)
-#        snp =2 - snp
-#
-#       return(list(snp=snp, NMISS=length(s.miss), MAF=mean(  snp )/2 ))
-#
-#
-#      total_miss =length(which(is.na(snpmat)))
-#
-#      r.imp  =apply(snpmat, 2, f_imputed)
-#      snpmat =do.call("cbind", lapply(1:NCOL(snpmat), function(i)return(r.imp[[i]].snp)))
-#      NMISS  =do.call("unlist", lapply(1:NCOL(snpmat), function(i)return(r.imp[[i]].NMISS)))
-#      MAF    =do.call("unlist", lapply(1:NCOL(snpmat), function(i)return(r.imp[[i]].MAF)))
-#
-#
-#       print("* Missing SNPs are imputed(", total_miss, "SNPs).")
-#
-#      return(list(snpmat=snpmat, NMISS=NMISS, MAF=MAF))
-#
-#
-#     plink.cmd.load.chromosome(plink.command,file_plink_bed, file_plink_bim, file_plink_fam, chr)
-#
-#      tmp =tempfile()
-#      str.cmd =paste( plink.command, "--noweb",
-#          "--bed", file_plink_bed,
-#          "--bim", file_plink_bim,
-#          "--fam", file_plink_fam,
-#          "--chr", chr,
-#          "--make-bed",
-#          "--out", tmp,
-#          sep=" ")
-#
-#      t =try(system( str.cmd, ignore.stdout=True, ignore.stderr=True) )
-#      if(class(t)=="try-error")
-#
-#        print("! Error in PLINK command.")
-#       return(list(error=T, err.info="Error in PLINK command."))
-#
-#
-#      plink =try( read.plink( paste(tmp, ".bed", sep=""),  paste(tmp, ".bim", sep=""), paste(tmp, ".fam", sep="")) )
-#      if(class(plink) == "try-error")
-#
-#        print("! Package snpStats can not open PLINK data.")
-#       return(list(error=T, err.info="Package snpStats can not open PLINK data."))
-#
-#
-#      return(plink)
-#
-#
-#
-#     plink.cmd.select(plink.command, file_plink_bed, file_plink_bim, file_plink_fam, select.snps, select.subjects)
-#
-#      file.keep.snp =tempfile()
-#      file.keep.subject =tempfile()
-#      write.table(select.snps, file=file.keep.snp, quote=F, row.names=F, col.names=F)
-#      write.table(select.subjects, file=file.keep.subject, quote=F, row.names=F, col.names=F)
-#
-#      tmp =tempfile()
-#      str.cmd =paste( plink.command, "--noweb",
-#          "--bed", file_plink_bed,
-#          "--bim", file_plink_bim,
-#          "--fam", file_plink_fam,
-#          "--keep", file.keep.subject,
-#          "--extract", file.keep.snp,
-#          "--make-bed",
-#          "--out", tmp,
-#          sep=" ")
-#
-#      t =try(system( str.cmd, ignore.stdout=True, ignore.stderr=False) )
-#      if(class(t)=="try-error")
-#
-#        print("! Error in PLINK command.")
-#       return(list(error=T, err.info="Error in PLINK command."))
-#
-#
-#      plink =try( read.plink( paste(tmp, ".bed", sep=""),  paste(tmp, ".bim", sep=""), paste(tmp, ".fam", sep="")) )
-#      if(class(plink) == "try-error")
-#
-#        print("! Package snpStats can not open PLINK data.")
-#       return(list(error=T, err.info="Package snpStats can not open PLINK data."))
-#
-#
-#      unlink(c(file.keep.snp, file.keep.subject, paste(tmp, ".bed", sep=""),  paste(tmp, ".bim", sep=""), paste(tmp, ".fam", sep="") ))
-#
-#      return(plink)
 #
 #
 #
