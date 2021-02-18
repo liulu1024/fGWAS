@@ -126,7 +126,7 @@ def proc_mle(index, snp_info, snp_vec, obj_phe, intercepted, **kwargs):
 
     if bOptim:
         #todo 未测试
-        r_val = (h0.fun - h1.value) * 2
+        r_val = (h0.fun - h1_value) * 2
         # 卡方检验
         r_pv = 1 - scipy.stats.chi2.cdf(r_val, df=(gen_par - 1) * obj_phe.obj_curve.get_param_info(pheT).count)
 
