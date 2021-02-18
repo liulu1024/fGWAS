@@ -120,8 +120,8 @@ def proc_mle(index, snp_info, snp_vec, obj_phe, intercepted, **kwargs):
     if isinstance(h1,resultVo.AllInOneVo):
          h1_value=h1.fun
     else:
-        h1_value=h1.value
-    if (h1 is None) or (h1.value is None) or (math.isinf(h1.value)):
+         h1_value=h1.value
+    if (h1 is None) or (h1_value is None) or (math.isinf(h1_value)):
         bOptim = False
 
     if bOptim:
@@ -142,7 +142,7 @@ def proc_mle(index, snp_info, snp_vec, obj_phe, intercepted, **kwargs):
     p_2=np.array([maf,len(snp_miss0), len(snp_vec0), len(snp_vec1), len(snp_vec2),gen_par,r_val, r_pv])
     p_2=np.insert(p_2,p_2.size,h0.fun)
     p_2 = np.insert(p_2, p_2.size, h0.x)
-    p_2 = np.insert(p_2, p_2.size, h1.value)
+    p_2 = np.insert(p_2, p_2.size, h1_value)
     p_2 = np.insert(p_2, p_2.size, h1.x)
     p_2=pd.DataFrame(p_2.reshape((1,-1)))
 
