@@ -2,6 +2,54 @@
 # sequence preferences of a set of TFs.
 import numpy as np
 import os
+import Simple as simple
+
+class FgGenObj(object):
+    def __init__(self, n_snp=None, n_ind_total=None, n_ind_used=None, reader=None, files=None, options=None, params=None):
+        self.n_snp = n_snp
+        self.n_ind_total = n_ind_total
+        self.n_ind_used = n_ind_used
+        self.reader = reader
+        self.files = files
+        self.options = options
+        # (file_plink_bed,file_plink_bim, file_plink_fam,command )
+        self.params = params
+
+
+class FgPheObj(object):
+    def __init__(self, obj_curve=None, obj_covar=None, ids=None, pheY=None,
+                 pheX=None, pheT=None, n_ids=None, intercept=None,params=None,
+                 est_curve=None,est_covar=None,summary_curve=None,summary_covar=None,h0=None):
+        self.obj_curve = obj_curve
+        self.obj_covar = obj_covar
+        self.ids = ids
+        self.pheY = pheY
+        self.pheX = pheX
+        self.pheT = pheT
+        self.n_ids = n_ids
+        self.intercept = intercept
+        self.params = params
+        self.est_curve = est_curve
+        self.est_covar = est_covar
+        self.summary_curve = summary_curve
+        self.summary_covariance = summary_covar
+        self.h0=h0
+       # self.pheZ=pheZ if pheZ is None else pd.DataFrame()
+
+
+
+# for function proc_dat_simu
+class SimuObj(object):
+    def __init__(self, obj_gen=None, obj_phe=None, error=None):
+        self.obj_gen = obj_gen
+        self.obj_phe = obj_phe
+        self.error = error
+
+
+class SnpData(object):
+    def __init__(self, snp_mat=None, snp_info=None):
+        self.snp_mat = snp_mat
+        self.snp_info = snp_info
 
 
 class FgGenoData(object):
@@ -14,6 +62,7 @@ class FgGenoData(object):
     ids_used:individual used.
     """
 
+    # type, description, snp_num, ind_total_num, ind_used_num, ids_used
     def __init__(self, type, description, snp_num, ind_total_num, ind_used_num, ids_used):
         self.type = type
         self.description = description
@@ -27,9 +76,9 @@ class FgGenoData(object):
         print(type(self))
         print("  Data type: " + self.type)
         print("  Description: " + self.description)
-        print("  SNP Count: {0}".format(self.snp_num))
-        print("  Individual Count: {0}".format(self.ind_total_num))
-        print("  Individual Used: {0}".format(self.ind_used_num))
+        print("  SNP Count:0}".format(self.snp_num))
+        print("  Individual Count:0}".format(self.ind_total_num))
+        print("  Individual Used:0}".format(self.ind_used_num))
 
     def shrink(self):
         pass
@@ -53,131 +102,69 @@ class FgGenoData(object):
         pass
 
 
-class FgDmPlink(FgGenoData):
-    """
-    file_bed   character
-    file_bim   character
-    file._fam   character
-    command      character
-    chromosome    numeric
-    snp_block_size   numeric
-    snp_data         list
-    """
-
-    def __init__(self, file_bed, file_bim, file_fam, command, chromosome, snp_block_size, snp_data):
-        self.file_bed = file_bed
-        self.file_bim = file_bim
-        self.file_fam = file_fam
-        self.command = command
-        self.chromosome = chromosome
-        self.snp_block_size = snp_block_size
-        self.snp_data = snp_data
-
-    def show(self):
-        if not self.chromosome == -1:
-            print("  Chromosome: {0}".format(self.chromosome))
-        else:
-            print("  Chromosome: all")
-        super(FgDmPlink, self).show()
-        print("  Plink Command: " + self.command)
-
-    def shrink(self):
-        pass
+'''
+Simple obj
+'''
 
 
-# shrink = function()
-# {
-#
-#
-# return (plink.shrink(.self));
-# },
-#
-# get_snpinfo = function(snp.idx)
-# {
-# return (plink.get.snpinfo(.self, snp.idx));
-# },
-#
-# get_snpmat = function(snp.idx, impute=F, allel=F)
-# {
-# return (plink.get.snpmat(.self, snp.idx, impute=impute, allel=allel));
-# },
-#
-# select_individuals = function(ids.used)
-# {
-# return (plink.select.individuals(.self, ids.used));
-# },
-#
-# get_used_individuals = function()
-# {
-# return (plink.get.used.individuals(.self));
-# },
-#
-# get_individuals = function()
-# {
-# return (plink.get.individuals(.self));
-# },
-#
-# get_snpindex = function(snp.names)
-# {
-# return (plink.get.snpindex(.self, snp.names));
-# } )
+class Snp(object):
+    def __init__(self, snp=None, NMISS=None, MAF=None):
+        self.snp = snp
+        self.NMISS = NMISS
+        self.MAF = MAF
+
+
+class SnpMat(object):
+    def __init__(self, snpmat=None, NMISS=None, MAF=None):
+        self.snpmat = snpmat
+        self.NMISS = NMISS
+        self.MAF = MAF
 
 
 class FgDmSimple(FgGenoData):
-    def __init__(self, file_simple_snp, rawData, snpData, *args):
-        super(FgDmSimple, self).__init__(args)
-        self.file_simple_snp = file_simple_snp
-        self.rawData = rawData
-        self.snpData = snpData
 
+    def __init__(self, type, description, n_snp, n_ind_total, n_ind_used, ids_used, file_simple_snp, rawData,
+                     snpData):
+            self.type = type
+            self.description = description
+            self.n_snp = n_snp
+            self.n_ind_total = n_ind_total
+            self.n_ind_used = n_ind_used
+            self.ids_used = ids_used
+            self.file_simple_snp = file_simple_snp
+            self.rawData = rawData
+            self.snpData = snpData
 
-# shrink = function()
-# {
-# return (simple.shrink(.self));
-# },
-#
-# get_snpinfo = function(snp.idx)
-# {
-# return (simple.get.snpinfo(.self, snp.idx));
-# },
-#
-# get_snpmat = function(snp.idx, impute=F, allel=F)
-# {
-# return (simple.get.snpmat(.self, snp.idx, impute=impute, allel=allel));
-# },
-#
-# select_individuals = function(ids.used)
-# {
-# return (simple.select.individuals(.self, ids.used));
-# },
-#
-# get_used_individuals = function()
-# {
-# return (simple.get.used.individuals(.self));
-# },
-#
-# get_individuals = function()
-# {
-# return (simple.get.individuals(.self));
-# },
-#
-# get_snpindex = function(snp.names)
-# {
-# return (simple.get.snpindex(.self, snp.names));
-# } )
-#
-# )
+    def shrink(self):
+        super().shrink(self)
 
+    def get_snpinfo(self, snp_idx):
+        return simple.simple_get_snpinfo(self, snp_idx)
 
-def select_individuals(object, ids_used):
-    idx_match = np.where(ids_used.astype(str), object.ids)
-    if not len(idx_match) == len(object.ids):
-        os.exit("Some IDs are not matached in the SNP data file");
+    def get_snpmat(self, snp_idx, impute=False, allel=False):
+        return simple.simple_get_snpmat(self, snp_idx, impute=impute, allel=allel)
 
-    object.n_ind = len(ids_used)
-    object.ids = ids_used.astype(str)
-    object.pheY = object.pheY.iloc[idx_match]
-    object.pheX = object.pheX.iloc[idx_match]
-    object.pheZ = object.pheZ.iloc[idx_match]
+    def select_individuals(self, ids_used):
+        return simple.simple_select_individuals(self, ids_used)
 
-    return object
+    def get_used_individuals(self):
+        return simple.simple_get_used_individuals(self)
+
+    def get_individuals(self):
+        return simple.simple_get_individuals(self)
+
+    def get_snpindex(self, snp_names):
+        return simple.simple_get_snpindex(self, snp_names)
+
+# def select_individuals(object, ids_used):
+#     idx_match = np.where(ids_used.astype(str), object.ids)
+#     if not len(idx_match) == len(object.ids):
+#         os.exit("Some IDs are not matached in the SNP data file"
+# 
+#     object.n_ind = len(ids_used)
+#     object.ids = ids_used.astype(str)
+#     object.pheY = object.pheY.iloc[idx_match]
+#     object.pheX = object.pheX.iloc[idx_match]
+#     object.pheZ = object.pheZ.iloc[idx_match]
+# 
+#     return object

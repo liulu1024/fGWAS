@@ -6,12 +6,16 @@ class BaseCurve(object):
         self.curveType = curveType
         self.description = description
 
-    def show(self):
-        print("     Class :", self.__class__, "\n")
-        print("Curve Type :", self.curveType, "\n")
+    def show(self,obj):
+        print("     Class :", obj.__class__, "\n")
+        print("Curve Type :", obj.curveType, "\n")
 
-        info = self.get_param_info()
-        print("Parameters :", info['names'], "\n")
-        print("   Formula :", info['formula'], "\n")
+        info = obj.get_param_info(None)
+        print("Parameters :", info.name, "\n")
+        print("   Formula :", info.formula, "\n")
 
-
+class ParamInfo(object):
+    def __init__(self,count=None,name=None,formula=None):
+        self.count=count
+        self.name=name
+        self.formula=formula

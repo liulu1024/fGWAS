@@ -1,4 +1,11 @@
-import Covariance.ARMA1
+import Covariance.AR1
+import Covariance.ARH1
+import  Covariance.ARMA1
+import  Covariance.CS
+import Covariance.CSH
+import Covariance.FA1
+import  Covariance.FAH1
+import Covariance.VS
 
 covariances = []
 
@@ -47,19 +54,13 @@ def getCovariance(type):
 def get_all_covariances():
     if len(covariances) == 0:
         covariances.append(Covariance.ARMA1.ARMA1(covarType="ARMA1", description="none"))
-        # self.curves.append(BaseCurve(curveType="Bi-Logistic", description="Double logistic curve"))
-        # self.curves.append(BaseCurve(curveType="ABRK", description="ABRK model"))
-        #
-        # self.curves.append(BaseCurve(curveType="Pharmacology", description="Pharmacology curve"))
-        # self.curves.append(BaseCurve(curveType="Exponential", description="Exponential curve"))
-        # self.curves.append(BaseCurve(curveType="Bi-Exponential", description="Bi-exponential curve"))
-        #
-        # self.curves.append(BaseCurve(curveType="Power", description="power curve"))
-        #
-        # self.curves.append(BaseCurve(curveType="Legendre2", description="Legendre Polynomial(2nd-order)"))
-        # self.curves.append(BaseCurve(curveType="Legendre3", description="Legendre Polynomial(3rd-order)"))
-        # self.curves.append(BaseCurve(curveType="Legendre4", description="Legendre Polynomial(4th-order)"))
-
+        covariances.append(Covariance.AR1.AR1(covarType="AR1", description="none"))
+        covariances.append(Covariance.ARH1.ARH1(covarType="ARH1", description="none"))
+        covariances.append(Covariance.CS.CS(covarType="CS", description="none"))
+        covariances.append(Covariance.CSH.CSH(covarType="CSH", description="none"))
+        covariances.append(Covariance.FA1.FA1(covarType="FA1", description="none"))
+        covariances.append(Covariance.FAH1.FAH1(covarType="FAH1", description="none"))
+        covariances.append(Covariance.VS.VS(covarType="VS", description="none"))
     return covariances
 
 

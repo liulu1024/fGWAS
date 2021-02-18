@@ -13,7 +13,7 @@ import Curve.Logistic as logistic
 -----------------------------------------------------------'''
 
 
-def get_curve_formula(par, times, options):
+def get_curve_formula(par, times, **options):
     return par[1] / (1 + par[2] * exp(-par[3] * times)) + par[4] / (1 + par[5] * exp(-par[6] * times))
 
 
@@ -45,9 +45,9 @@ def est_init_param(pheY, pheX, pheT, options=list()):
     return np.vstack(par, par)
 
 
-def get_param_info():
-    return {'count': 6, 'names': ["a1", "b1", "r1", "a2", "b2", "r2"], 'formula': "y = a1/(1+b1*exp(-r1*t)) +  "
-                                                                                  "a2/(1+b2*exp(-r2*t))"}
+def get_param_info(self,pheT,**kwargs):
+    return Curve.ParamInfo( 6, ["a1", "b1", "r1", "a2", "b2", "r2"],  "y = a1/(1+b1*exp(-r1*t)) +  "
+                                                                                  "a2/(1+b2*exp(-r2*t))")
 
 
 class DoubleLogistic(Curve.BaseCurve):
@@ -60,3 +60,6 @@ class DoubleLogistic(Curve.BaseCurve):
 
     def get_description(self):
         return self.description
+
+    def show(self):
+        super().show(obj=self)

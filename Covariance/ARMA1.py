@@ -12,7 +12,7 @@ class ARMA1(Covariance.BaseCovariance):
         rho = par[0]
         phi = abs(par[1])
         s2 = abs(par[2])
-        n = len(times) if isinstance(times, np.ndarray) else np.size(times, 0)
+        n = times.shape[0] if isinstance(times, np.ndarray) else times.columns.size
 
         sigma = abs(s2) * ((np.ones((n, n)) - np.eye(n)) * phi + np.eye(n)) * np.power(rho,abs(
             np.full((n, n), range(0, n)) - np.full((n, n), range(0, n)).T))
@@ -22,7 +22,7 @@ class ARMA1(Covariance.BaseCovariance):
         rho = par[1]
         phi = abs(par[2])
         s2 = abs(par[3])
-        n = len(times) if isinstance(times, list) else np.size(times, 1)
+        n = times.shape[0] if isinstance(times, np.ndarray) else times.columns.size
 
         rho_times = abs(np.arange(1, n + 1).reshape(n, n) - np.arange(1, n + 1).reshape(n, n).T)
 
@@ -32,12 +32,13 @@ class ARMA1(Covariance.BaseCovariance):
         ds2 = ((np.ones(n, n) - np.eye(n)) * phi + np.eye(n)) * rho ^ rho_times
 
         return list(drho, dphi, ds2)
+# to do 改为vo对象
 
     def get_param_info(self, par, times, *options):
-        return {'count': 3, 'names': ["rho", "phi", "sigma2"]}
+        return  Covariance.ParamInfo(3,["rho", "phi", "sigma2"])
 
     def check_param(self, par, times, options=list()):
-        if par[1] > 1 or par[1] < 0 or par[2] > 1 or par[2] < 0:
+        if par[0] > 1 or par[0] < 0 or par[1] > 1 or par[1] < 0:
             return False
         else:
             return True

@@ -15,7 +15,7 @@ import Curve.Logistic as logistic
 ----------------------------------------------------------'''
 
 
-class Logistic(Curve.BaseCurve):
+class ABRK(Curve.BaseCurve):
 
     def __init__(self, curveType, description):
         super().__init__(curveType, description)
@@ -26,11 +26,11 @@ class Logistic(Curve.BaseCurve):
     def get_description(self):
         return self.description
 
-    def get_curve_formula(self, par, times, options):
+    def get_curve_formula(self, par, times, **args):
         return par[1] * (1 + par[2] * exp(-par[3] * times)) ^ (1 / (1 - par[4]))
 
-    def get_param_info(self):
-        return {'count': 4, 'names': ["a", "b", "r", "k"], 'formula': "y = a*(1+b*exp(-r*t))^(1/(1-k))"}
+    def get_param_info(self,pheT,**kwargs):
+        return Curve.ParamInfo( 4,["a", "b", "r", "k"], "y = a*(1+b*exp(-r*t))^(1/(1-k))")
 
     def get_gradient(self, par, times, options=list()):
         da = (1 + par[2] * exp(-par[3] * times)) ^ (1 / (1 - par[4]))
@@ -45,6 +45,9 @@ class Logistic(Curve.BaseCurve):
 
     def check_param(self, par, times, options=list()):
         return True
+
+    def show(self):
+        super().show(obj=self)
 
     def get_simu_param(self):
         return np.array([[18.18, 9.98, 0.99, 2.6], [17.08, 9.78, 0.97, 2.5], [15.95, 9.88, 0.9, 2.48]])
