@@ -5,7 +5,7 @@ import random
 import numpy as np
 import pandas as pd
 
-import Simulation.FgObj as fgObj
+import FgDmObject as fgObj
 import Curve.CurveTool as tool
 import Covariance.CovarianceTool as covarTool
 import FgDmObject
@@ -36,11 +36,11 @@ def proc_dat_simu(n_obs, n_snp, par_X, par0, par1, par2, par_covar, curve, covar
     obj_gen.n_ind_total = n_obs
 
     obj_gen.n_ind_used = n_obs
-    obj_gen.reader = FgDmObject.FgDmSimple(file_simple_snp="",
-                                           rawData=pd.concat([tmp_snpinfo, tmp_matrix],axis=1),
+    obj_gen.reader = FgDmObject.FgDmSimple(type="SIMPLE", description="Simple geno table", n_snp=n_snp,
+                                           n_ind_total=n_obs, n_ind_used=n_obs, ids_used=tmp_matrix.columns.values,
+                                           file_simple_snp="",
+                                           rawData=pd.concat([tmp_snpinfo, tmp_matrix], axis=1),
                                            snpData=fgObj.SnpData(snp_info=tmp_snpinfo, snp_mat=tmp_matrix),
-                                           type="SIMPLE", description="Simple geno table", snp_num=n_snp,
-                                           ind_total_num=n_obs, ind_used_num=n_obs, ids_used=tmp_matrix.columns
                                            )
 
     pheX = None
@@ -57,11 +57,11 @@ def proc_dat_simu(n_obs, n_snp, par_X, par0, par1, par2, par_covar, curve, covar
 
     # generate traits
     # max_time,min_time
-    options = (np.nanmax(times), np.nanmin(times))
+    # options = {"max_times": np.nanmax(times), "min_times": np.nanmin(times)}
     sim_mu = np.zeros((3, len(times)))
-    sim_mu[0:] = curve.get_curve_formula(par0, times, *options)
-    sim_mu[1:] = curve.get_curve_formula(par1, times, *options)
-    sim_mu[2:] = curve.get_curve_formula(par2, times, *options)
+    sim_mu[0, :] = curve.get_curve_formula(par0, times, max_time=np.nanmax(times),min_times=np.nanmin(times))
+    sim_mu[1, :] = curve.get_curve_formula(par1, times, max_time=np.nanmax(times),min_times=np.nanmin(times))
+    sim_mu[2, :] = curve.get_curve_formula(par2, times, max_time=np.nanmax(times),min_times=np.nanmin(times))
 
     d_g = get_gencode(tmp_matrix.iloc[[sig_idx]], tmp_snpinfo.iloc[[sig_idx]], n_obs)
     # d_g1 = get_gencode(tmp_matrix.iloc[[0]], tmp_snpinfo.iloc[[0]], n_obs)
@@ -69,11 +69,10 @@ def proc_dat_simu(n_obs, n_snp, par_X, par0, par1, par2, par_covar, curve, covar
     sim_covar = covar.get_matrix(par_covar, times)
     pheY_data = np.zeros((n_obs, len(times)))
     for i in range(0, n_obs):
-        if d_g[:, i] == 9:
-            d_g[:, i] = np.round(np.random.uniform(0, 2, 1))
-            pheY_data[i] = np.random.multivariate_normal(sim_mu[(d_g[:, i])][0], sim_covar, 1)
-            if pheX is not None:
-                pheY_data[i] = pheY_data[i] + (pheX.iloc[[i]] * par_X).sum(axis=1).values
+        if d_g[:, i] == 9: d_g[:, i] = np.round(np.random.uniform(0, 2, 1))
+        pheY_data[i] = np.random.multivariate_normal(sim_mu[d_g[:, i], :][0], sim_covar, 1)
+        if pheX is not None:
+            pheY_data[i] = pheY_data[i] + ((pheX.iloc[[i]] * par_X).sum(axis=1))[0]
     pheY = pd.DataFrame(pheY_data, columns=['Y_{0}'.format(i) for i in times],
                         index=['N_{0}'.format(i) for i in range(0, n_obs)])
     obj_phe.obj_curve = curve
@@ -82,8 +81,12 @@ def proc_dat_simu(n_obs, n_snp, par_X, par0, par1, par2, par_covar, curve, covar
     obj_phe.pheY = pheY
     obj_phe.pheX = pheX
 
-    obj_phe.pheT = pd.DataFrame(np.repeat(times, n_obs).reshape(len(times), n_obs).T,
-                                columns=['T_{0}'.format(i) for i in range(0, len(times))],
+    columns = list('T_{0}'.format(i) for i in range(0, len(times)))
+    # 不加ID 列名
+    data = np.repeat(times, n_obs).reshape(len(times), n_obs)
+    # print(pheY._stat_axis.values.tolist())
+    obj_phe.pheT = pd.DataFrame(data.T,
+                                columns=columns,
                                 index=pheY._stat_axis.values.tolist())
 
     obj = fgObj.SimuObj(obj_gen, obj_phe, False)
@@ -105,7 +108,6 @@ def write_csv(fg_obj):
 # time_points type np.ndarray
 def fg_simulate(curveType, covarianceType, n_obs, n_snp, time_points, par0=None, par1=None, par2=None, par_covar=None,
                 par_X=None, phe_missing=0.03, snp_missing=0.03, sig_pos=None, plink_format=False, file_prefix=None):
-    # TODO the following two will remove to intrface and check if time_points is a list
     if not isinstance(time_points, np.ndarray):
         time_points = np.array(time_points)
     curve = tool.get_curve(curveType)
@@ -132,39 +134,40 @@ def fg_simulate(curveType, covarianceType, n_obs, n_snp, time_points, par0=None,
     write_csv(fg_obj)
 
     if not plink_format:
-          file_gen_dat = file_prefix+".geno.tab"
-          tb_gen =pd.concat([fg_obj.obj.gen.reader.get_snpinfo(None),
-                           fg_obj.obj.gen.reader.get_snpmat(None, impute=False, allel=True).snpmat],axis=1 )
-          tb_gen.columns = tb_gen.columns.values.append(fg_obj.obj_phe.file_pheX.index.values)
-         # write.table(tb.gen, file=file.gen.dat, quote=F, row.names = F, col.names = T, sep = "\t" );
+        file_gen_dat = file_prefix + ".geno.tab"
+        tb_gen = pd.concat([fg_obj.obj_gen.reader.get_snpinfo(None),
+                            fg_obj.obj_gen.reader.get_snpmat(None, impute=False, allel=True).snpmat], axis=1)
+        # todo fg_obj.obj_phe.file_pheX is str, rownames(str)=NULL
+        # tb_gen.columns =tb_gen.columns.values,fg_obj.obj_phe.file_pheX.index.values)
+        tb_gen.to_csv(file_gen_dat, sep="\t")
 
-          fg_obj.obj_gen.files = file_gen_dat
+        fg_obj.obj_gen.files = file_gen_dat
     else:
-         snp_mat =fg_obj.obj_gen.reader.get_snpmat(None, impute=False, allel=False).snpmat
-         snp_info =fg_obj.obj_gen.reader.get_snpinfo(None)
+        snp_mat = fg_obj.obj_gen.reader.get_snpmat(impute=False, allel=False).snpmat
+        snp_info = fg_obj.obj_gen.reader.get_snpinfo()
+        # todo
+        # r =convert_simpe_to_plink(data_frame(snp_info[, c(2, 1)], 0, snp_info[, c(3:5)]), snp_mat, paste(file_prefix,
+        #                                                                                                     "_geno",
+        #                                                                                                     sep="") );
 
-         # r =convert_simpe_to_plink(data_frame(snp_info[, c(2, 1)], 0, snp_info[, c(3:5)]), snp_mat, paste(file_prefix,
-         #                                                                                                     "_geno",
-         #                                                                                                     sep="") );
-
-         # fg_obj_obj_gen_files =(file_plink_bed = r_file_plink_bed,
-         #                        file_plink_bim = r_file_plink_bim,
-         #                                           file_plink_fam = r_file_plink_fam);
+        # fg_obj_obj_gen_files =(file_plink_bed = r_file_plink_bed,
+        #                        file_plink_bim = r_file_plink_bim,
+        #                                           file_plink_fam = r_file_plink_fam);
     return fg_obj
 
 
-class FgDmSimple(object):
-    def __init__(self, type, description, n_snp, n_ind_total, n_ind_used, ids_used, file_simple_snp, rawdata,
-                 snpdata):
-        self.type = type
-        self.description = description
-        self.n_snp = n_snp
-        self.n_ind_total = n_ind_total
-        self.n_ind_used = n_ind_used
-        self.ids_used = ids_used
-        self.file_simple_snp = file_simple_snp
-        self.rawdata = rawdata
-        self.snpdata = snpdata
+# class FgDmSimple(object):
+#     def __init__(self, type, description, n_snp, n_ind_total, n_ind_used, ids_used, file_simple_snp, rawdata,
+#                  snpdata):
+#         self.type = type
+#         self.description = description
+#         self.n_snp = n_snp
+#         self.n_ind_total = n_ind_total
+#         self.n_ind_used = n_ind_used
+#         self.ids_used = ids_used
+#         self.file_simple_snp = file_simple_snp
+#         self.rawdata = rawdata
+#         self.snpdata = snpdata
 
 
 def get_gencode(gen, snp_info, n_obs):
@@ -186,8 +189,9 @@ def get_gencode(gen, snp_info, n_obs):
     return d_g
 
 
+# aim 检查snp_mat 与snp_info 行数不同
 def generate_bc_marker(n_obs, dist):
-    if dist[1] != 0:
+    if dist[0] != 0:
         cm = np.hstack((0, dist)) / 100
     else:
         cm = dist / 100
@@ -235,8 +239,8 @@ def proc_simu_geno(n_obs, n_snp, sig_idx, prob_miss=0.03):
             if cor_high[i] != sig_idx:
                 snp1[cor_high[i]] = snp1[cor_high[i] - 1]
                 snp2[cor_high[i]] = snp2[cor_high[i] - 1]
-    snp1_s = snp1.astype(str).flatten()
-    snp2_s = snp2.astype(str).flatten()
+    snp1_s = snp1.astype(str).flatten('F')
+    snp2_s = snp2.astype(str).flatten('F')
 
     if len(np.where(snp1_s == "0.0")) > 0:
         snp1_s[np.where(snp1_s == "0.0")] = 'A'
@@ -252,7 +256,8 @@ def proc_simu_geno(n_obs, n_snp, sig_idx, prob_miss=0.03):
     if len(np.where(snp2_s == "9.0")) > 0:
         snp2_s[np.where(snp2_s == "9.0")] = "."
     #
-    snp_s = np.char.add(snp1_s, snp2_s)
-    gen = pd.DataFrame(snp_s.reshape(snp1.shape[0], n_obs), columns=['N_{0}'.format(i) for i in range(0, n_obs)],
-                       index=['SNP_{0}'.format(i) for i in range(0, snp1.shape[0])])
+    snp_s = np.char.add(snp1_s, snp2_s)[0:n_snp * n_obs]
+    gen = pd.DataFrame(np.reshape(snp_s[0:n_snp * n_obs], (n_snp, n_obs), 'F'),
+                       columns=['N_{0}'.format(i) for i in range(0, n_obs)],
+                       index=['SNP_{0}'.format(i) for i in range(0, n_snp)])
     return gen
