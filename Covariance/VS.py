@@ -41,4 +41,4 @@ class VS(Covariance.BaseCovariance):
         return np.arange(1.2,1.0+n*0.2,0.2)
 
     def est_init_param(self, pheY, pheX, pheT, **options):
-        return  np.std(pheY,ddof=1)^2
+        return  np.std(pheY,ddof=1)**2

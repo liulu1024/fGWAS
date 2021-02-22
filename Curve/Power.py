@@ -22,10 +22,10 @@ class Power(Curve.BaseCurve):
         super().show(obj=self)
 
     def est_init_param(self, pheY, pheX, pheT, **options):
-        b = np.nanmean((math.log(pheY[:, pheY.columnx.size - 1]) - math.log(pheY[:, 0])) / (
-                    math.log(pheT[:, pheT.columns.size - 1]) - math.log(pheT[:, :])))
+        b = np.nanmean((np.log(pheY[:, pheY.columnx.size - 1]) - np.log(pheY[:, 0])) / (
+                    np.log(pheT[:, pheT.columns.size - 1]) - np.log(pheT[:, :])))
         a = math.exp(
-            np.nanmean(math.log(pheY[:, pheY.columnx.size - 1]) - b * math.log(pheT[:, pheY.columnx.size - 1])))
+            np.nanmean(np.log(pheY[:, pheY.columnx.size - 1]) - b * np.log(pheT[:, pheY.columnx.size - 1])))
         return [a, b]
 
     def get_simu_param(self, times):
@@ -35,7 +35,7 @@ class Power(Curve.BaseCurve):
         return True
 
     def get_gradient(self, par, times, **options):
-        return [times ^ par[2], par[1] * (times ^ par[2]) * math.log(times)]
+        return [times ^ par[2], par[1] * (times ^ par[2]) * np.log(times)]
 
     def get_curve_formula(self, par, times, **options):
         return par[1] * (times ^ par[2])

@@ -568,12 +568,10 @@ def fg_fit_covar(pheY, pheX, pheT, y_resd, obj_curve, covariance_type="auto", **
     obj_covars = list()
     if covariance_type == "auto" or covariance_type == "" or covariance_type is None:
         for i in range(0, covarTool.get_covariances_count()):
-            obj_covars[i] = covarTool.getCovariance(i)
+            obj_covars.append(covarTool.getCovariance(i))
 
     else:
         obj_covars.append(covarTool.getCovariance(covariance_type))
-        # for i in range(0, len(covariance_type)):
-        #     obj_covars[i] = covarTool.getCovariance(covariance_type[i])
 
     est_covar = list()
     index = 0

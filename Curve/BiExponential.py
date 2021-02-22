@@ -43,4 +43,4 @@ class BiExponential(Curve.BaseCurve):
         return [d_a1, d_r1, d_a2, d_r2]
 
     def get_curve_formula(self, par, times, *options):
-        return par[1] * math.np.exp(-par[2] * times) + par[3] * math.np.exp(-par[4] * times)
+        return par[1] * np.exp(-par[2] * times) + par[3] * np.exp(-par[4] * times)

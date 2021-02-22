@@ -29,20 +29,20 @@ class ChapmanRichard(Curve.BaseCurve):
         return True
 
     def get_gradient(self, par, times, **options):
-        d_a = (1 - math.exp(-par[3] * times)) ^ par[2]
-        d_b = par[1] * (1 - math.exp(-par[3] * times)) ^ par[2] * math.log(1 - math.exp(-par[3] * times))
-        d_r = par[1] * (1 - math.exp(-par[3] * times)) ^ (par[2] - 1) * par[2] * math.exp(-par[3] * times) * (
+        d_a = (1 - np.exp(-par[3] * times)) ^ par[2]
+        d_b = par[1] * (1 - np.exp(-par[3] * times)) ^ par[2] * np.log(1 - np.exp(-par[3] * times))
+        d_r = par[1] * (1 - np.exp(-par[3] * times)) ^ (par[2] - 1) * par[2] * np.exp(-par[3] * times) * (
                     -1 * times)
 
         return [d_a, d_b, d_r]
 
     def get_curve_formula(self, par, times, **options):
-        return par[1] * (1 - math.exp(-par[3] * times)) ^ par[2]
+        return par[1] * (1 - np.exp(-par[3] * times)) ^ par[2]
 
     def est_init_param(self, pheY, pheX, pheT, **options):
         a = np.nanmax(pheY)
         b = 1
-        r = np.nanmean(math.log(1 - pheY / a) / pheT / (-1), trim=0.2)
+        r = np.nanmean(np.log(1 - pheY / a) / pheT / (-1), trim=0.2)
         if math.isinf(r): r = 0
 
         return [a, b, r]

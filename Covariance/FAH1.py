@@ -30,7 +30,7 @@ class FAH1(Covariance.BaseCovariance):
         d_ret[0] = d_d = np.identity(n)
         A =np.c_(np.tile(0.5 * math.sqrt(s2))[0:n],np.zeros((n, n - 1)))
         for  i in range(0,len(s2)):
-            d_ret[i+1] = (A + A.T) / math.sqrt(s2[i])
+            d_ret[i+n] = (A + A.T) / math.sqrt(s2[i])
             A = np.c_[np.zeros((A.shape[0], 1)),A[:,0:-1]]
 
         return d_ret
@@ -48,4 +48,4 @@ class FAH1(Covariance.BaseCovariance):
         return [0.5,np.arange(1.2, 1.0+ n*0.2, 0.2)]
 
     def est_init_param(self, pheY, pheX, pheT, **options):
-        return [np.nanstd(pheY,ddof=1) ^ 2 / 100, np.std(pheY,axis=0,ddof=1) ^ 2 * np.random.uniform(0.8, 1.2,1)]
+        return [np.nanstd(pheY,ddof=1) ** 2 / 100, np.std(pheY,axis=0,ddof=1) ** 2 * np.random.uniform(0.8, 1.2,1)]

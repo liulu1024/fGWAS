@@ -45,7 +45,7 @@ class Pharmacology(Curve.BaseCurve):
         return np.array([[0.9824, 15.909, 20.7768], [8.9824, 16.098, 20.7768], [6.9507, 12.090, 18.5737]])
 
     def est_init_param(self, pheY, pheX, pheT, options=list()):
-        mc = tool.get_mean_vector(pheY, pheT);
+        mc = tool.get_mean_vector(pheY, pheT)
         m = len(mc['t'])
 
         par = list()

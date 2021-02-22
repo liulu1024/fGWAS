@@ -22,8 +22,8 @@ class Exponential(Curve.BaseCurve):
         super().show(obj=self)
 
     def est_init_param(self, pheY, pheX, pheT, **options):
-        r = np.nanmean((math.log(pheY[:, 1]) - math.log(pheY[:, 0])) / (pheT[:, 1] - pheT[:, 0]))
-        w0 = np.nanmean(pheY[:, 0] / math.exp(r * pheT[:, 0]))
+        r = np.nanmean((np.log(pheY[:, 1]) - np.log(pheY[:, 0])) / (pheT[:, 1] - pheT[:, 0]))
+        w0 = np.nanmean(pheY[:, 0] / np.exp(r * pheT[:, 0]))
 
         return [w0, r]
 
@@ -34,10 +34,10 @@ class Exponential(Curve.BaseCurve):
         return True
 
     def get_gradient(self, par, times, *options):
-        d_a = math.exp(par[2] * times)
-        d_r = par[1] * math.exp(par[2] * times) * times
+        d_a = np.exp(par[2] * times)
+        d_r = par[1] * np.exp(par[2] * times) * times
 
         return [d_a, d_r]
 
     def get_curve_formula(self, par, times, **options):
-        return par[[1]] * math.exp(par[[2]] * times)
+        return par[[1]] * np.exp(par[[2]] * times)

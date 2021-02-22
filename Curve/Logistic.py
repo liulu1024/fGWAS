@@ -44,10 +44,10 @@ class Logistic(Curve.BaseCurve):
         if a_rate == 1:
             a_rate = 0.99
         for i in range(0, 10):
-            par_a = mc['y'][m-1] * a_rate ** i
+            par_a = mc['y'][m-1] * a_rate ** (i+1)
             try:
-                par_r = log(par_a / mc['y'][0] - 1) - log(par_a / mc['y'][m-1] - 1) / (mc['t'][0] - mc['t'][m-1])
-            except(Exception):
+                par_r = np.log(par_a / mc['y'][0] - 1) - np.log(par_a / mc['y'][m-1] - 1) / (mc['t'][0] - mc['t'][m-1])
+            except Exception:
                 continue
             if np.isinf(par_r):
                 continue

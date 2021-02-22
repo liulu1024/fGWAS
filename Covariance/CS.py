@@ -14,7 +14,7 @@ class CS(Covariance.BaseCovariance):
         s2 = abs(par[1])
         n = times.shape[0] if isinstance(times, np.ndarray) else times.columns.size
 
-        sigma = abs(s2) * rho ^ abs(np.ones((n, n)) - np.identity(n))
+        sigma = abs(s2) * rho ** abs(np.ones((n, n)) - np.identity(n))
         return sigma
 
     def get_gradient(self, par, times, **kwargs):
@@ -22,8 +22,8 @@ class CS(Covariance.BaseCovariance):
         s2 = abs(par[1])
         n = times.shape[0] if isinstance(times, np.ndarray) else times.columns.size
 
-        d_rho = abs(s2) * rho ^ np.zeros((n, n))
-        d_s2 = rho ^ abs(np.ones((n, n)) - np.identity(n))
+        d_rho = abs(s2) * rho ** np.zeros((n, n))
+        d_s2 = rho ** abs(np.ones((n, n)) - np.identity(n))
 
         return [d_rho, d_s2]
 
@@ -43,7 +43,7 @@ class CS(Covariance.BaseCovariance):
 
     def est_init_param(self, pheY, pheX, pheT, **options):
         sel =np.isnan(pheY[:, 0]) | np.isnan(pheY[:, 1])
-        rho =np.corrcoef(pheY[not sel, 0], pheY[not sel, 1])
-        s2 =np.nanstd(pheY, ddof=1)^ 2
+        rho =np.corrcoef(pheY[sel==False, 0], pheY[sel==False, 1])
+        s2 =np.nanstd(pheY, ddof=1)** 2
 
         return [rho, s2 * np.random.uniform(0.9, 1.1,1)]

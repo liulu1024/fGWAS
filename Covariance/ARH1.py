@@ -58,11 +58,11 @@ class ARH1(Covariance.BaseCovariance):
         n = pheT.shape[0] if isinstance(pheT, np.ndarray) else pheT.columns.size
 
         def func(i):
-            sel = np.isnan(pheY[:, i]) | np.isnan(pheY[:, i + 1])
-            return np.corrcoef(pheY[not sel, i], pheY[not sel, i + 1])
+            sel = np.isnan(pheY[:, i-1]) | np.isnan(pheY[:, i])
+            return np.corrcoef(pheY[sel==False, i-1], pheY[sel==False, i])
 
-        rho = np.nanmean([func(i) for i in range(0, pheY.columns.size)])
+        rho = np.nanmean([func(i) for i in range(0, pheY.shape[1])])
 
-        s2 = np.std(pheY, axis=0, ddof=1) ^ 2
+        s2 = np.std(pheY, axis=0, ddof=1) ** 2
 
         return [rho, s2 * np.random.uniform(0.9, 1.1, n)]

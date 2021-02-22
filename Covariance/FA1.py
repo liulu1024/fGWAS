@@ -48,4 +48,4 @@ class FA1(Covariance.BaseCovariance):
         return [0.5,np.arange(1.2, 1.0+ n*0.2, 0.2)]
 
     def est_init_param(self, pheY, pheX, pheT, **options):
-        return [np.nanstd(pheY,ddof=1) ^ 2 / 100, np.std(pheY,axis=0,ddof=1) ^ 2 * np.random.uniform(0.8, 1.2,1)]
+        return [np.nanstd(pheY,ddof=1) ** 2 / 100, np.std(pheY,axis=0,ddof=1) ** 2 * np.random.uniform(0.8, 1.2,1)]

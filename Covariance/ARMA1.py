@@ -7,7 +7,7 @@ class ARMA1(Covariance.BaseCovariance):
     def __init__(self, covarType, description):
         super().__init__(covarType, description)
 
-    def get_matrix(self, par, times, *options):
+    def get_matrix(self, par, times, **options):
         # rho,sigma2,phi
         rho = par[0]
         phi = abs(par[1])
@@ -18,7 +18,7 @@ class ARMA1(Covariance.BaseCovariance):
             np.full((n, n), range(0, n)) - np.full((n, n), range(0, n)).T))
         return sigma
 
-    def get_gradient(self, par, times, options=list()):
+    def get_gradient(self, par, times, **options):
         rho = par[1]
         phi = abs(par[2])
         s2 = abs(par[3])
@@ -34,7 +34,7 @@ class ARMA1(Covariance.BaseCovariance):
         return list(drho, dphi, ds2)
 # to do 改为vo对象
 
-    def get_param_info(self, par, times, *options):
+    def get_param_info(self, par, times, **options):
         return  Covariance.ParamInfo(3,["rho", "phi", "sigma2"])
 
     def check_param(self, par, times, options=list()):
@@ -43,16 +43,16 @@ class ARMA1(Covariance.BaseCovariance):
         else:
             return True
 
-    def get_simu_param(self, times, *options):
+    def get_simu_param(self, times, **options):
         return [0.75, 0.9, 1.2]
 
-    def est_init_param(self, pheY, pheX, pheT, *options):
+    def est_init_param(self, pheY, pheX, pheT, **options):
         # TODO nan 值处理
-        s2 = np.var(pheY[:, 1])
+        s2 = np.var(pheY[:, 0])
         # ! & !  and !(&)
-        rho = np.corrcoef(pheY[not (np.isnan(pheY[:, 3]) & np.isnan(pheY[:, 2])), 3],
-                          pheY[not (np.isnan(pheY[:, 3]) & np.isnan(pheY[:, 2])), 2])
-        phi = np.corrcoef(pheY[not (np.isnan(pheY[:, 2]) & np.isnan(pheY[:, 1])), 2],
-                          pheY[not (np.isnan(pheY[:, 2]) & np.isnan(pheY[:, 1])), 1]) / rho
+        rho = np.corrcoef(pheY[((np.isnan(pheY[:, 2])==False) & (np.isnan(pheY[:, 1])==False)), 2],
+                          pheY[ ((np.isnan(pheY[:, 2])==False) & (np.isnan(pheY[:, 1])==False)), 1])
+        phi = np.corrcoef(pheY[ ((np.isnan(pheY[:, 1])==False) & (np.isnan(pheY[:, 0])==False)), 1],
+                          pheY[ ((np.isnan(pheY[:,1])==False)& (np.isnan(pheY[:, 0])==False)), 0]) / rho
 
         return [rho, phi, s2 * np.random.normal(0.9, 1.1, 1)]
